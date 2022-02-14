@@ -18,6 +18,7 @@ class Article extends Model
         return $this->belongsTo('App\User');
     }
 
+    // 中間テーブルlikesを定義 (関数名は必ずしも「likes」でなくてもいいが動的プロパティでアクセスする場合は、関数名で指定しなければならない)
     public function likes(): BelongsToMany
     {
         return $this->belongsToMany('App\User', 'likes')->withTimestamps();
