@@ -2,5 +2,5 @@
 set-eux
 
 cd ~/laravel-ci
-php artisan maigrate --force
+php artisan migrate --force
 php artisan config:cache
