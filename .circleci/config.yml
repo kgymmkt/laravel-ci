@@ -1,4 +1,8 @@
 version: 2.1
+executors:
+  doc-executor:
+    docker:
+      - image: circleci/php:7.3-node-browsers
 jobs:
   build:
     docker:
@@ -50,8 +54,7 @@ jobs:
           name: php test
           command: vendor/bin/phpunit
   deploy:
-    docker:
-      - image: circleci/php:7.3-node-browsers
+    executor: doc-executor
     environment:
       AWS_DEFAULT_REGION: ap-northeast-1
     steps:
@@ -91,6 +94,16 @@ jobs:
             --application-name laravel-ci \
             --deployment-group-name laravel-ci \
             --s3-location bucket=${AWS_S3_BUCKET_NAME},key=laravel-ci.zip,bundleType=zip
+  deploy_tmp:
+    executor: doc-executor
+    steps:
+      - checkout
+      - add_ssh_keys
+      - run:
+          name: deploy to prod
+          command: |
+            echo -e "Host git-codecommit.*.amazonaws.com\n   User ${AWS_SSH_KEY_ID}\n   StrictHostKeyChecking no" > ${HOME}/.ssh/config
+            git push ssh://git-codecommit.ap-northeast-1.amazonaws.com/v1/repos/laravel-ci
 orbs:
   aws-cli: circleci/aws-cli@1.0.0
 workflows:
@@ -102,6 +115,13 @@ workflows:
           requires:
             - build
           filters:
+            branches:
+              only:
+                - main
+      - deploy_tmp:
+          requires:
+            - build
+          filter:
             branches:
               only:
                 - main
